@@ -16,7 +16,7 @@ export default function NPSDonutChart({
   const data = [
     { name: "Promoters (9-10)", value: promotersPercent, color: "#4CAF50" },
     { name: "Passives (7-8)", value: passivesPercent, color: "#F59E0B" },
-    { name: "Detractors (0-6)", value: detractorsPercent, color: "#EF4444" },
+    { name: "Detractors (0-6)", value: detractorsPercent, color: "rgb(249, 0, 50)" },
   ];
 
   // Use primary (burnt orange) color for the NPS score as per design system

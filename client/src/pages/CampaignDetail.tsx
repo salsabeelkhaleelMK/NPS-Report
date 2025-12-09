@@ -12,6 +12,7 @@ import InsightsCard from "@/components/campaigns/InsightsCard";
 import NPSTrendChart from "@/components/campaigns/NPSTrendChart";
 import DetractorCasesTable from "@/components/campaigns/DetractorCasesTable";
 import CampaignSettingsDrawer from "../components/campaigns/CampaignSettingsDrawer";
+import AIAgentLiveStatus from "@/components/campaigns/AIAgentLiveStatus";
 
 export default function CampaignDetail() {
   const params = useParams<{ id: string }>();
@@ -91,8 +92,12 @@ export default function CampaignDetail() {
         </Card>
 
         {/* AI CALL RELATED INSIGHTS */}
+        {campaign.aiAgentSettings.enabled && (
+          <AIAgentLiveStatus campaignId={campaign.id} />
+        )}
+
         <InsightsCard
-          title="AI Agent Performance"
+          title="History"
           icon={<Phone className="h-5 w-5" />}
           collapsible
           defaultExpanded={true}

@@ -707,7 +707,7 @@ export default function CampaignSettingsDrawer({
           <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
             Cancel
           </Button>
-          <Button onClick={handleSave} className="flex-1 bg-slate-900" data-testid="button-save-settings">
+          <Button onClick={handleSave} className="flex-1 bg-[rgb(249,0,50)] hover:bg-[rgb(220,0,45)]" data-testid="button-save-settings">
             Save Changes
           </Button>
         </div>

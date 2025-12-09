@@ -74,14 +74,14 @@ export default {
         nps: {
           promoter: "#4CAF50",
           passive: "#F59E0B",
-          detractor: "#EF4444",
+          detractor: "rgb(249, 0, 50)",
         },
         
         // Status colors
         status: {
           success: "#4CAF50",
           warning: "#F59E0B",
-          error: "#EF4444",
+          error: "rgb(249, 0, 50)",
           info: "#3B82F6",
         },
         

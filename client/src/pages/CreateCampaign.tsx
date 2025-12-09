@@ -1268,7 +1268,7 @@ export default function CreateCampaign() {
 
   return (
     <div className="min-h-full bg-gray-50">
-      <div className="max-w-4xl mx-auto px-8 py-8">
+      <div className="max-w-6xl mx-auto px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
@@ -1290,17 +1290,19 @@ export default function CreateCampaign() {
           </span>
         </div>
 
-        {/* Step Indicator */}
-        <div className="mb-8">
-          <StepIndicator
-            steps={WIZARD_STEPS}
-            currentStep={currentStep}
-            onStepClick={(step) => {
-              if (step < currentStep) {
-                setCurrentStep(step);
-              }
-            }}
-          />
+        {/* Step Indicator - Wider container for better visibility */}
+        <div className="mb-8 -mx-8 px-8">
+          <div className="max-w-7xl mx-auto">
+            <StepIndicator
+              steps={WIZARD_STEPS}
+              currentStep={currentStep}
+              onStepClick={(step) => {
+                if (step < currentStep) {
+                  setCurrentStep(step);
+                }
+              }}
+            />
+          </div>
         </div>
 
         {/* Content Card */}
