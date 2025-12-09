@@ -35,47 +35,55 @@ export default function CampaignList() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-full bg-gray-50 p-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <h1 className="text-2xl font-semibold" data-testid="text-page-title">Campaigns</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900" data-testid="text-page-title">
+              Campaigns
+            </h1>
+            <p className="text-gray-500 mt-1">Manage and track your NPS campaigns</p>
+          </div>
           <Button 
             onClick={handleCreateCampaign} 
-            className="bg-slate-900"
+            className="bg-primary hover:bg-primary/90 text-white rounded-md"
             data-testid="button-create-campaign"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Create New Campaign
+            Create Campaign
           </Button>
         </div>
 
+        {/* Search Bar */}
         {campaigns.length > 0 && (
           <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               type="search"
               placeholder="Search campaigns by name, language, service type, or status..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white"
+              className="pl-11 bg-white border-gray-200 rounded-lg h-11 text-gray-900 placeholder:text-gray-400"
               data-testid="input-search"
             />
           </div>
         )}
 
+        {/* Campaign List */}
         {campaigns.length === 0 ? (
           <EmptyState
             title="No campaigns yet"
             description="Get started by creating your first NPS campaign to collect customer feedback and track satisfaction scores."
-            actionLabel="Create New Campaign"
+            actionLabel="Create Campaign"
             onAction={handleCreateCampaign}
           />
         ) : filteredCampaigns.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No campaigns match your search.</p>
+          <div className="text-center py-16 bg-white rounded-lg border border-gray-200">
+            <p className="text-gray-500">No campaigns match your search.</p>
           </div>
         ) : (
-          <div className="space-y-4" data-testid="campaign-list">
+          <div className="grid gap-4" data-testid="campaign-list">
             {filteredCampaigns.map((campaign) => (
               <CampaignCard
                 key={campaign.id}

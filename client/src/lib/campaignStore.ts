@@ -585,7 +585,8 @@ export const getStatusColor = (status: CampaignStatus): string => {
 };
 
 export const getNPSColor = (score: number): string => {
-  if (score >= 70) return 'text-green-600';
+  // Use primary (burnt orange) for excellent scores, amber for moderate, red for poor
+  if (score >= 70) return 'text-[#E64A19]'; // Primary burnt orange
   if (score >= 50) return 'text-amber-600';
   return 'text-red-600';
 };

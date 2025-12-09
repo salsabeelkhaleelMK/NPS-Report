@@ -1,5 +1,4 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
-import { getNPSColor } from "@/lib/campaignStore";
 
 interface NPSDonutChartProps {
   promotersPercent: number;
@@ -15,12 +14,13 @@ export default function NPSDonutChart({
   npsScore 
 }: NPSDonutChartProps) {
   const data = [
-    { name: "Promoters (9-10)", value: promotersPercent, color: "#22c55e" },
-    { name: "Passives (7-8)", value: passivesPercent, color: "#f59e0b" },
-    { name: "Detractors (0-6)", value: detractorsPercent, color: "#ef4444" },
+    { name: "Promoters (9-10)", value: promotersPercent, color: "#4CAF50" },
+    { name: "Passives (7-8)", value: passivesPercent, color: "#F59E0B" },
+    { name: "Detractors (0-6)", value: detractorsPercent, color: "#EF4444" },
   ];
 
-  const colorClass = getNPSColor(npsScore);
+  // Use primary (burnt orange) color for the NPS score as per design system
+  const scoreColor = "#E64A19";
 
   return (
     <div className="relative w-full h-[280px]" data-testid="chart-nps-donut">
@@ -42,24 +42,30 @@ export default function NPSDonutChart({
           <Tooltip 
             formatter={(value: number) => [`${value}%`, ""]}
             contentStyle={{ 
-              backgroundColor: 'hsl(var(--popover))', 
-              border: '1px solid hsl(var(--border))',
-              borderRadius: '6px'
+              backgroundColor: '#fff', 
+              border: '1px solid #E5E7EB',
+              borderRadius: '8px',
+              boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)'
             }}
           />
           <Legend 
             verticalAlign="bottom" 
             height={36}
-            formatter={(value) => <span className="text-xs text-foreground">{value}</span>}
+            formatter={(value) => <span className="text-xs text-gray-600">{value}</span>}
           />
         </PieChart>
       </ResponsiveContainer>
       
+      {/* Center NPS Score with primary (burnt orange) color */}
       <div className="absolute top-[35%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-        <span className={`text-4xl font-bold ${colorClass}`} data-testid="text-nps-center">
+        <span 
+          className="text-5xl font-bold" 
+          style={{ color: scoreColor }}
+          data-testid="text-nps-center"
+        >
           {npsScore}
         </span>
-        <p className="text-xs text-muted-foreground uppercase tracking-wide mt-1">NPS Score</p>
+        <p className="text-xs text-gray-400 uppercase tracking-wider mt-1 font-medium">NPS Score</p>
       </div>
     </div>
   );

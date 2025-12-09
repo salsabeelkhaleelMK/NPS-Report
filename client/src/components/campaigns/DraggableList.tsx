@@ -42,14 +42,15 @@ function SortableItem({ id, children }: DraggableItemProps) {
       ref={setNodeRef}
       style={style}
       className={`
-        flex items-center gap-2 p-3 bg-white dark:bg-card rounded-md border border-border
-        ${isDragging ? "opacity-50 shadow-lg z-50" : ""}
+        flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-200
+        ${isDragging ? "opacity-50 shadow-md z-50" : "hover:border-gray-300"}
+        transition-colors
       `}
       data-testid={`draggable-item-${id}`}
     >
       <button
         type="button"
-        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 transition-colors"
         {...attributes}
         {...listeners}
         data-testid={`drag-handle-${id}`}

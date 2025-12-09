@@ -30,12 +30,12 @@ export default function StepIndicator({ steps, currentStep, onStepClick }: StepI
                   flex items-center justify-center w-10 h-10 rounded-full border-2 
                   transition-all text-sm font-semibold
                   ${isCompleted 
-                    ? "bg-slate-900 border-slate-900 text-white" 
+                    ? "bg-primary border-primary text-white" 
                     : isCurrent 
                       ? "bg-primary border-primary text-white" 
-                      : "bg-white border-slate-300 text-slate-400"
+                      : "bg-white border-gray-200 text-gray-400"
                   }
-                  ${isClickable ? "cursor-pointer hover-elevate" : "cursor-default"}
+                  ${isClickable ? "cursor-pointer hover:opacity-90" : "cursor-default"}
                 `}
                 data-testid={`button-step-${step.id}`}
               >
@@ -44,7 +44,7 @@ export default function StepIndicator({ steps, currentStep, onStepClick }: StepI
               <span 
                 className={`
                   mt-2 text-xs font-medium text-center max-w-[80px]
-                  ${isCurrent ? "text-foreground" : "text-muted-foreground"}
+                  ${isCurrent ? "text-gray-900" : "text-gray-500"}
                 `}
               >
                 {step.title}
@@ -55,7 +55,7 @@ export default function StepIndicator({ steps, currentStep, onStepClick }: StepI
               <div 
                 className={`
                   w-16 h-0.5 mx-2 mt-[-20px]
-                  ${step.id < currentStep ? "bg-slate-900" : "bg-slate-200"}
+                  ${step.id < currentStep ? "bg-primary" : "bg-gray-200"}
                 `}
               />
             )}
