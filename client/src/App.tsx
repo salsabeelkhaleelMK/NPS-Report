@@ -153,7 +153,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <MainLayout>
-          <Router />
+        <Router />
         </MainLayout>
       </TooltipProvider>
     </QueryClientProvider>

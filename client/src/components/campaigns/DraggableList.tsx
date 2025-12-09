@@ -42,22 +42,24 @@ function SortableItem({ id, children }: DraggableItemProps) {
       ref={setNodeRef}
       style={style}
       className={`
-        flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-200
-        ${isDragging ? "opacity-50 shadow-md z-50" : "hover:border-gray-300"}
-        transition-colors
+        relative
+        ${isDragging ? "opacity-50 shadow-md z-50" : ""}
+        transition-opacity
       `}
       data-testid={`draggable-item-${id}`}
     >
-      <button
-        type="button"
-        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 transition-colors"
-        {...attributes}
-        {...listeners}
-        data-testid={`drag-handle-${id}`}
-      >
-        <GripVertical className="h-4 w-4" />
-      </button>
-      <div className="flex-1">{children}</div>
+      <div className="flex items-start gap-2">
+        <button
+          type="button"
+          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 transition-colors mt-4"
+          {...attributes}
+          {...listeners}
+          data-testid={`drag-handle-${id}`}
+        >
+          <GripVertical className="h-5 w-5" />
+        </button>
+        <div className="flex-1">{children}</div>
+      </div>
     </div>
   );
 }
@@ -98,7 +100,7 @@ export default function DraggableList<T extends { id: string }>({
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-        <div className="space-y-2" data-testid="draggable-list">
+        <div className="space-y-4" data-testid="draggable-list">
           {items.map((item, index) => (
             <SortableItem key={item.id} id={item.id}>
               {renderItem(item, index)}

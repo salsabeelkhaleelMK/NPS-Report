@@ -63,11 +63,11 @@
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 50%;
   --warning-foreground: 0 0% 100%;
-  
+
   /* Elevation */
   --elevate-1: rgba(0,0,0, 0.03);
   --elevate-2: rgba(0,0,0, 0.06);
-  
+
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
@@ -139,11 +139,11 @@
   .hover-elevate {
     @apply transition-all duration-150;
   }
-  
+
   .hover-elevate:hover {
     background-color: var(--elevate-1);
   }
-  
+
   .active-elevate-2:active {
     background-color: var(--elevate-2);
   }
