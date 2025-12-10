@@ -1,13 +1,16 @@
 import { Switch, Route, Redirect, useLocation } from "wouter";
+import { lazy, Suspense } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
-import CampaignList from "@/pages/CampaignList";
-import CampaignDetail from "@/pages/CampaignDetail";
-import CreateCampaign from "@/pages/CreateCampaign";
 import { LayoutDashboard, Megaphone, Settings, BarChart3, Users, Search, Bell, ChevronDown } from "lucide-react";
+
+// Lazy load pages for code splitting
+const CampaignList = lazy(() => import("@/pages/CampaignList"));
+const CampaignDetail = lazy(() => import("@/pages/CampaignDetail"));
+const CreateCampaign = lazy(() => import("@/pages/CreateCampaign"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -121,29 +124,43 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Loading fallback component
+function PageLoader() {
+  return (
+    <div className="min-h-full bg-gray-50 flex items-center justify-center p-8">
+      <div className="text-center">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-gray-500 text-sm">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
 function Router() {
   return (
-    <Switch>
-      <Route path="/">
-        <Redirect to="/campaigns" />
-      </Route>
-      <Route path="/campaigns" component={CampaignList} />
-      <Route path="/campaigns/new" component={CreateCampaign} />
-      <Route path="/campaigns/:id" component={CampaignDetail} />
-      <Route path="/dashboard">
-        <Redirect to="/campaigns" />
-      </Route>
-      <Route path="/analytics">
-        <Redirect to="/campaigns" />
-      </Route>
-      <Route path="/customers">
-        <Redirect to="/campaigns" />
-      </Route>
-      <Route path="/settings">
-        <Redirect to="/campaigns" />
-      </Route>
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<PageLoader />}>
+      <Switch>
+        <Route path="/">
+          <Redirect to="/campaigns" />
+        </Route>
+        <Route path="/campaigns" component={CampaignList} />
+        <Route path="/campaigns/new" component={CreateCampaign} />
+        <Route path="/campaigns/:id" component={CampaignDetail} />
+        <Route path="/dashboard">
+          <Redirect to="/campaigns" />
+        </Route>
+        <Route path="/analytics">
+          <Redirect to="/campaigns" />
+        </Route>
+        <Route path="/customers">
+          <Redirect to="/campaigns" />
+        </Route>
+        <Route path="/settings">
+          <Redirect to="/campaigns" />
+        </Route>
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
