@@ -52,19 +52,41 @@ const ACTION_TYPES: ActionType[] = [
 ];
 
 type DataSourceType = "external_crm" | "leadspark" | "manual_upload";
-type QuestionSourceType = "external" | "manual";
+type QuestionSourceType = "leadspark" | "fidspark" | "external" | "manual";
+type TriggerSourceType = "external_webhook" | "leadspark";
+type TemplateSourceType = "leadspark" | "fidspark" | "manual";
+
+// Sample surveys for Leadspark and Fidspark
+const LEADSPARK_SAMPLE_SURVEYS = [
+  { id: "ls-1", name: "Customer Satisfaction Survey", description: "Standard NPS survey for post-purchase feedback" },
+  { id: "ls-2", name: "Service Quality Survey", description: "Service visit feedback collection" },
+  { id: "ls-3", name: "Product Feedback Survey", description: "New vehicle purchase experience" },
+  { id: "ls-4", name: "Follow-up Reminder", description: "Gentle reminder for pending surveys" },
+];
+
+const FIDSPARK_SAMPLE_SURVEYS = [
+  { id: "fs-1", name: "Dispute Resolution Survey", description: "Feedback after dispute resolution" },
+  { id: "fs-2", name: "Complaint Follow-up", description: "Post-complaint satisfaction check" },
+  { id: "fs-3", name: "Escalation Feedback", description: "Feedback after escalation handling" },
+  { id: "fs-4", name: "Recovery Survey", description: "Customer recovery experience" },
+];
 
 const initialFormData: Omit<Campaign, "id" | "createdAt" | "updatedAt"> & {
   dataSourceType: DataSourceType;
   externalCrmUrl: string;
   questionSourceType: QuestionSourceType;
   externalQuestionSourceUrl: string;
+  selectedSurveyId: string;
   endDateEnabled: boolean;
+  triggerSourceType: TriggerSourceType;
+  triggerSourceWebhookUrl: string;
 } = {
   name: "",
   description: "",
   language: "EN",
   serviceType: "New Vehicle Purchase",
+  triggerSourceType: "leadspark",
+  triggerSourceWebhookUrl: "",
   status: "Draft",
   startDate: new Date(),
   endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -75,8 +97,9 @@ const initialFormData: Omit<Campaign, "id" | "createdAt" | "updatedAt"> & {
   dataSource: "",
   dataSourceType: "leadspark",
   externalCrmUrl: "",
-  questionSourceType: "external",
+  questionSourceType: "leadspark",
   externalQuestionSourceUrl: "",
+  selectedSurveyId: LEADSPARK_SAMPLE_SURVEYS[0].id,
   surveyQuestions: DEFAULT_QUESTIONS["New Vehicle Purchase"].map((q) => ({ ...q, id: uuidv4() })),
   followUpSteps: [
     { id: uuidv4(), order: 1, actionType: "Send AI Call", delayDays: 0, configuration: {} },
@@ -86,12 +109,6 @@ const initialFormData: Omit<Campaign, "id" | "createdAt" | "updatedAt"> & {
     sms: { body: "" },
     whatsapp: { template: "" },
   },
-  reviewChannels: [
-    { id: uuidv4(), platform: "Google", priority: 1, enabled: false },
-    { id: uuidv4(), platform: "Facebook", priority: 2, enabled: false },
-    { id: uuidv4(), platform: "AutoScout24", priority: 3, enabled: false },
-    { id: uuidv4(), platform: "mobile.de", priority: 4, enabled: false },
-  ],
   outcomeRules: {
     detractors: {
       createFidsparkDispute: false,
@@ -101,7 +118,12 @@ const initialFormData: Omit<Campaign, "id" | "createdAt" | "updatedAt"> & {
       webhookSecret: "",
       webhookPayloadTemplate: "",
     },
-    promoters: { promptReviewChannels: false },
+    nonResponders: {
+      createFidsparkDispute: false,
+      createLeadsparkTask: false,
+      createWebhookTask: false,
+    },
+    promoters: { notifyFidspark: false },
     passives: { noAction: true },
   },
   aiAgentSettings: {
@@ -133,15 +155,8 @@ const initialFormData: Omit<Campaign, "id" | "createdAt" | "updatedAt"> & {
       avgCallDuration: 0,
       escalationReasons: [],
     },
-    reviewPerformance: {
-      totalReviewRequestsSent: 0,
-      clickRate: 0,
-      clicksByChannel: [],
-      clicksByPlatform: [],
-      engagementRate: 0,
-      engagementTrend: [],
-    },
     detractorTickets: [],
+    detractorTasks: [],
   },
 };
 
@@ -258,6 +273,9 @@ export default function CreateCampaign() {
         }
         return true;
       case 4:
+        if (formData.questionSourceType === "leadspark" || formData.questionSourceType === "fidspark") {
+          return formData.selectedSurveyId.trim() !== "";
+        }
         if (formData.questionSourceType === "external") {
           return formData.externalQuestionSourceUrl.trim() !== "";
         }
@@ -342,38 +360,21 @@ export default function CreateCampaign() {
                 data-testid="input-campaign-description"
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label className="text-sm font-medium text-gray-900">Language</Label>
-                <Select
-                  value={formData.language}
-                  onValueChange={(v) => updateField("language", v as Language)}
-                >
-                  <SelectTrigger className="mt-2 bg-white border-gray-200 rounded-md" data-testid="select-language">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="EN">English</SelectItem>
-                    <SelectItem value="DE">German</SelectItem>
-                    <SelectItem value="AR">Arabic</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-900">Service Type</Label>
-                <Select value={formData.serviceType} onValueChange={handleServiceTypeChange}>
-                  <SelectTrigger className="mt-2 bg-white border-gray-200 rounded-md" data-testid="select-service-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="New Vehicle Purchase">New Vehicle Purchase</SelectItem>
-                    <SelectItem value="Service Visit">Service Visit</SelectItem>
-                    <SelectItem value="Parts Purchase">Parts Purchase</SelectItem>
-                    <SelectItem value="Financing">Financing</SelectItem>
-                    <SelectItem value="Leasing">Leasing</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-900">Language</Label>
+              <Select
+                value={formData.language}
+                onValueChange={(v) => updateField("language", v as Language)}
+              >
+                <SelectTrigger className="mt-2 bg-white border-gray-200 rounded-md w-full" data-testid="select-language">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="EN">English</SelectItem>
+                  <SelectItem value="DE">German</SelectItem>
+                  <SelectItem value="AR">Arabic</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -407,6 +408,88 @@ export default function CreateCampaign() {
                   data-testid="input-end-date"
                 />
               </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-900">Service Type</Label>
+              <Select value={formData.serviceType} onValueChange={handleServiceTypeChange}>
+                <SelectTrigger className="mt-2 bg-white border-gray-200 rounded-md w-full" data-testid="select-service-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="New Vehicle Purchase">New Vehicle Purchase</SelectItem>
+                  <SelectItem value="Service Visit">Service Visit</SelectItem>
+                  <SelectItem value="Parts Purchase">Parts Purchase</SelectItem>
+                  <SelectItem value="Financing">Financing</SelectItem>
+                  <SelectItem value="Leasing">Leasing</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Trigger Source Section */}
+            <div>
+              <Label className="text-sm font-medium text-gray-900">Trigger Source</Label>
+              <p className="text-xs text-gray-500 mb-3">
+                Select how campaigns will be triggered
+              </p>
+              
+              <RadioGroup
+                value={formData.triggerSourceType}
+                onValueChange={(v) => updateField("triggerSourceType", v as TriggerSourceType)}
+                className="space-y-3"
+              >
+                <Card 
+                  className={`p-4 bg-white border rounded-lg cursor-pointer transition-all ${formData.triggerSourceType === "leadspark" ? "border-primary ring-1 ring-primary" : "border-gray-200 hover:border-gray-300"}`}
+                  onClick={() => updateField("triggerSourceType", "leadspark")}
+                >
+                  <div className="flex items-start gap-4">
+                    <RadioGroupItem value="leadspark" id="trigger-leadspark" className="mt-1" />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <Database className="h-5 w-5 text-primary" />
+                        <Label htmlFor="trigger-leadspark" className="font-medium text-gray-900 cursor-pointer">Leadspark</Label>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Campaigns will be triggered automatically from Leadspark events
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+                
+                <Card 
+                  className={`p-4 bg-white border rounded-lg cursor-pointer transition-all ${formData.triggerSourceType === "external_webhook" ? "border-primary ring-1 ring-primary" : "border-gray-200 hover:border-gray-300"}`}
+                  onClick={() => updateField("triggerSourceType", "external_webhook")}
+                >
+                  <div className="flex items-start gap-4">
+                    <RadioGroupItem value="external_webhook" id="trigger-external" className="mt-1" />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <ExternalLink className="h-5 w-5 text-primary" />
+                        <Label htmlFor="trigger-external" className="font-medium text-gray-900 cursor-pointer">External System (Webhook)</Label>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Campaigns will be triggered via webhook from an external system
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </RadioGroup>
+
+              {formData.triggerSourceType === "external_webhook" && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <Label htmlFor="trigger-webhook-url" className="text-sm font-medium text-gray-900">Webhook Endpoint URL</Label>
+                  <Input
+                    id="trigger-webhook-url"
+                    value={formData.triggerSourceWebhookUrl}
+                    onChange={(e) => updateField("triggerSourceWebhookUrl", e.target.value)}
+                    placeholder="https://api.external-system.com/trigger"
+                    className="mt-2 bg-white border-gray-200"
+                    data-testid="input-trigger-webhook-url"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    The external system will send trigger events to this webhook
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -442,56 +525,280 @@ export default function CreateCampaign() {
 
                     switch (step.actionType) {
                       case "Send Email":
+                        const emailSource = (getStepConfiguration(step.id, "emailTemplateSource") as TemplateSourceType) || "manual";
                         return (
                           <div className="pt-4 border-t border-gray-100">
                             <Label className="text-sm font-semibold text-gray-900 mb-2 block">Email Template</Label>
                             <p className="text-xs text-gray-500 mb-4">
-                  Configure the email template for "Send Email" steps
-                </p>
-                <div className="space-y-4">
-                  <div>
-                                <Label className="text-sm font-medium text-gray-900">Subject</Label>
-                    <Input
-                                  value={(getStepConfiguration(step.id, "emailSubject") as string) || formData.messageTemplates.email.subject}
-                                  onChange={(e) => updateStepConfiguration(step.id, { emailSubject: e.target.value })}
-                      placeholder="We'd love your feedback!"
-                                  className="mt-2 bg-white border-gray-200"
-                      data-testid="input-email-subject"
-                    />
-                  </div>
-                  <div>
-                                <Label className="text-sm font-medium text-gray-900">Body</Label>
-                    <Textarea
-                                  value={(getStepConfiguration(step.id, "emailBody") as string) || formData.messageTemplates.email.body}
-                                  onChange={(e) => updateStepConfiguration(step.id, { emailBody: e.target.value })}
-                      placeholder="Use {{customerName}} and {{surveyLink}} as placeholders"
-                                  className="mt-2 bg-white border-gray-200"
-                      rows={4}
-                      data-testid="input-email-body"
-                    />
-                  </div>
-                </div>
-              </div>
+                              Configure the email template source for "Send Email" steps
+                            </p>
+                            
+                            {/* Template Source Toggles */}
+                            <div className="space-y-3 mb-4">
+                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Database className="h-4 w-4 text-primary" />
+                                  <Label className="text-sm text-gray-900">From Leadspark</Label>
+                                </div>
+                                <Switch
+                                  checked={emailSource === "leadspark"}
+                                  onCheckedChange={(v) => updateStepConfiguration(step.id, { 
+                                    emailTemplateSource: v ? "leadspark" : "manual",
+                                    emailSelectedSurvey: v ? LEADSPARK_SAMPLE_SURVEYS[0].id : ""
+                                  })}
+                                  disabled={emailSource === "fidspark"}
+                                  data-testid="switch-email-leadspark"
+                                />
+                              </div>
+                              
+                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <ExternalLink className="h-4 w-4 text-primary" />
+                                  <Label className="text-sm text-gray-900">From Fidspark</Label>
+                                </div>
+                                <Switch
+                                  checked={emailSource === "fidspark"}
+                                  onCheckedChange={(v) => updateStepConfiguration(step.id, { 
+                                    emailTemplateSource: v ? "fidspark" : "manual",
+                                    emailSelectedSurvey: v ? FIDSPARK_SAMPLE_SURVEYS[0].id : ""
+                                  })}
+                                  disabled={emailSource === "leadspark"}
+                                  data-testid="switch-email-fidspark"
+                                />
+                              </div>
+                              
+                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Plus className="h-4 w-4 text-primary" />
+                                  <Label className="text-sm text-gray-900">Manual</Label>
+                                </div>
+                                <Switch
+                                  checked={emailSource === "manual"}
+                                  onCheckedChange={(v) => updateStepConfiguration(step.id, { 
+                                    emailTemplateSource: v ? "manual" : "leadspark",
+                                    emailSelectedSurvey: ""
+                                  })}
+                                  disabled={emailSource === "leadspark" || emailSource === "fidspark"}
+                                  data-testid="switch-email-manual"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Leadspark Survey Selection */}
+                            {emailSource === "leadspark" && (
+                              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <Label className="text-sm font-medium text-gray-900 mb-2 block">Select Leadspark Survey</Label>
+                                <Select
+                                  value={(getStepConfiguration(step.id, "emailSelectedSurvey") as string) || LEADSPARK_SAMPLE_SURVEYS[0].id}
+                                  onValueChange={(v) => updateStepConfiguration(step.id, { emailSelectedSurvey: v })}
+                                >
+                                  <SelectTrigger className="bg-white border-gray-200" data-testid="select-email-leadspark-survey">
+                                    <SelectValue placeholder="Select a survey template" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {LEADSPARK_SAMPLE_SURVEYS.map((survey) => (
+                                      <SelectItem key={survey.id} value={survey.id}>
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{survey.name}</span>
+                                          <span className="text-xs text-gray-500">{survey.description}</span>
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <p className="text-xs text-blue-600 mt-2">
+                                  Email content will be pulled from Leadspark survey template
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Fidspark Survey Selection */}
+                            {emailSource === "fidspark" && (
+                              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                                <Label className="text-sm font-medium text-gray-900 mb-2 block">Select Fidspark Survey</Label>
+                                <Select
+                                  value={(getStepConfiguration(step.id, "emailSelectedSurvey") as string) || FIDSPARK_SAMPLE_SURVEYS[0].id}
+                                  onValueChange={(v) => updateStepConfiguration(step.id, { emailSelectedSurvey: v })}
+                                >
+                                  <SelectTrigger className="bg-white border-gray-200" data-testid="select-email-fidspark-survey">
+                                    <SelectValue placeholder="Select a survey template" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {FIDSPARK_SAMPLE_SURVEYS.map((survey) => (
+                                      <SelectItem key={survey.id} value={survey.id}>
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{survey.name}</span>
+                                          <span className="text-xs text-gray-500">{survey.description}</span>
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <p className="text-xs text-purple-600 mt-2">
+                                  Email content will be pulled from Fidspark survey template
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Manual Template */}
+                            {emailSource === "manual" && (
+                              <div className="space-y-4">
+                                <div>
+                                  <Label className="text-sm font-medium text-gray-900">Subject</Label>
+                                  <Input
+                                    value={(getStepConfiguration(step.id, "emailSubject") as string) || formData.messageTemplates.email.subject}
+                                    onChange={(e) => updateStepConfiguration(step.id, { emailSubject: e.target.value })}
+                                    placeholder="We'd love your feedback!"
+                                    className="mt-2 bg-white border-gray-200"
+                                    data-testid="input-email-subject"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm font-medium text-gray-900">Body</Label>
+                                  <Textarea
+                                    value={(getStepConfiguration(step.id, "emailBody") as string) || formData.messageTemplates.email.body}
+                                    onChange={(e) => updateStepConfiguration(step.id, { emailBody: e.target.value })}
+                                    placeholder="Use {{customerName}} and {{surveyLink}} as placeholders"
+                                    className="mt-2 bg-white border-gray-200"
+                                    rows={4}
+                                    data-testid="input-email-body"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         );
                       case "Send SMS":
+                        const smsSource = (getStepConfiguration(step.id, "smsTemplateSource") as TemplateSourceType) || "manual";
                         return (
                           <div className="pt-4 border-t border-gray-100">
                             <Label className="text-sm font-semibold text-gray-900 mb-2 block">SMS Template</Label>
                             <p className="text-xs text-gray-500 mb-4">
-                  Configure the SMS template for "Send SMS" steps
-                </p>
-                <div>
-                              <Label className="text-sm font-medium text-gray-900">Message</Label>
-                  <Textarea
-                                value={(getStepConfiguration(step.id, "smsBody") as string) || formData.messageTemplates.sms.body}
-                                onChange={(e) => updateStepConfiguration(step.id, { smsBody: e.target.value })}
-                    placeholder="Hi {{customerName}}! Rate your experience: {{surveyLink}}"
-                                className="mt-2 bg-white border-gray-200"
-                    rows={3}
-                    data-testid="input-sms-body"
-                  />
-                </div>
-              </div>
+                              Configure the SMS template source for "Send SMS" steps
+                            </p>
+                            
+                            {/* Template Source Toggles */}
+                            <div className="space-y-3 mb-4">
+                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Database className="h-4 w-4 text-primary" />
+                                  <Label className="text-sm text-gray-900">From Leadspark</Label>
+                                </div>
+                                <Switch
+                                  checked={smsSource === "leadspark"}
+                                  onCheckedChange={(v) => updateStepConfiguration(step.id, { 
+                                    smsTemplateSource: v ? "leadspark" : "manual",
+                                    smsSelectedSurvey: v ? LEADSPARK_SAMPLE_SURVEYS[0].id : ""
+                                  })}
+                                  disabled={smsSource === "fidspark"}
+                                  data-testid="switch-sms-leadspark"
+                                />
+                              </div>
+                              
+                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <ExternalLink className="h-4 w-4 text-primary" />
+                                  <Label className="text-sm text-gray-900">From Fidspark</Label>
+                                </div>
+                                <Switch
+                                  checked={smsSource === "fidspark"}
+                                  onCheckedChange={(v) => updateStepConfiguration(step.id, { 
+                                    smsTemplateSource: v ? "fidspark" : "manual",
+                                    smsSelectedSurvey: v ? FIDSPARK_SAMPLE_SURVEYS[0].id : ""
+                                  })}
+                                  disabled={smsSource === "leadspark"}
+                                  data-testid="switch-sms-fidspark"
+                                />
+                              </div>
+                              
+                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Plus className="h-4 w-4 text-primary" />
+                                  <Label className="text-sm text-gray-900">Manual</Label>
+                                </div>
+                                <Switch
+                                  checked={smsSource === "manual"}
+                                  onCheckedChange={(v) => updateStepConfiguration(step.id, { 
+                                    smsTemplateSource: v ? "manual" : "leadspark",
+                                    smsSelectedSurvey: ""
+                                  })}
+                                  disabled={smsSource === "leadspark" || smsSource === "fidspark"}
+                                  data-testid="switch-sms-manual"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Leadspark Survey Selection */}
+                            {smsSource === "leadspark" && (
+                              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <Label className="text-sm font-medium text-gray-900 mb-2 block">Select Leadspark Survey</Label>
+                                <Select
+                                  value={(getStepConfiguration(step.id, "smsSelectedSurvey") as string) || LEADSPARK_SAMPLE_SURVEYS[0].id}
+                                  onValueChange={(v) => updateStepConfiguration(step.id, { smsSelectedSurvey: v })}
+                                >
+                                  <SelectTrigger className="bg-white border-gray-200" data-testid="select-sms-leadspark-survey">
+                                    <SelectValue placeholder="Select a survey template" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {LEADSPARK_SAMPLE_SURVEYS.map((survey) => (
+                                      <SelectItem key={survey.id} value={survey.id}>
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{survey.name}</span>
+                                          <span className="text-xs text-gray-500">{survey.description}</span>
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <p className="text-xs text-blue-600 mt-2">
+                                  SMS content will be pulled from Leadspark survey template
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Fidspark Survey Selection */}
+                            {smsSource === "fidspark" && (
+                              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                                <Label className="text-sm font-medium text-gray-900 mb-2 block">Select Fidspark Survey</Label>
+                                <Select
+                                  value={(getStepConfiguration(step.id, "smsSelectedSurvey") as string) || FIDSPARK_SAMPLE_SURVEYS[0].id}
+                                  onValueChange={(v) => updateStepConfiguration(step.id, { smsSelectedSurvey: v })}
+                                >
+                                  <SelectTrigger className="bg-white border-gray-200" data-testid="select-sms-fidspark-survey">
+                                    <SelectValue placeholder="Select a survey template" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {FIDSPARK_SAMPLE_SURVEYS.map((survey) => (
+                                      <SelectItem key={survey.id} value={survey.id}>
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{survey.name}</span>
+                                          <span className="text-xs text-gray-500">{survey.description}</span>
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <p className="text-xs text-purple-600 mt-2">
+                                  SMS content will be pulled from Fidspark survey template
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Manual Template */}
+                            {smsSource === "manual" && (
+                              <div>
+                                <Label className="text-sm font-medium text-gray-900">Message</Label>
+                                <Textarea
+                                  value={(getStepConfiguration(step.id, "smsBody") as string) || formData.messageTemplates.sms.body}
+                                  onChange={(e) => updateStepConfiguration(step.id, { smsBody: e.target.value })}
+                                  placeholder="Hi {{customerName}}! Rate your experience: {{surveyLink}}"
+                                  className="mt-2 bg-white border-gray-200"
+                                  rows={3}
+                                  data-testid="input-sms-body"
+                                />
+                              </div>
+                            )}
+                          </div>
                         );
                       case "Send AI Call":
                         return (
@@ -895,37 +1202,145 @@ export default function CreateCampaign() {
               
               <RadioGroup
                 value={formData.questionSourceType}
-                onValueChange={(v) => updateField("questionSourceType", v as QuestionSourceType)}
-                className="flex gap-4"
+                onValueChange={(v) => {
+                  updateField("questionSourceType", v as QuestionSourceType);
+                  if (v === "leadspark") {
+                    updateField("selectedSurveyId", LEADSPARK_SAMPLE_SURVEYS[0].id);
+                  } else if (v === "fidspark") {
+                    updateField("selectedSurveyId", FIDSPARK_SAMPLE_SURVEYS[0].id);
+                  }
+                }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-3"
               >
                 <Card 
-                  className={`flex-1 p-4 bg-white border rounded-lg cursor-pointer transition-all ${formData.questionSourceType === "external" ? "border-primary ring-1 ring-primary" : "border-gray-200 hover:border-gray-300"}`}
-                  onClick={() => updateField("questionSourceType", "external")}
+                  className={`p-4 bg-white border rounded-lg cursor-pointer transition-all ${formData.questionSourceType === "leadspark" ? "border-primary ring-1 ring-primary" : "border-gray-200 hover:border-gray-300"}`}
+                  onClick={() => {
+                    updateField("questionSourceType", "leadspark");
+                    updateField("selectedSurveyId", LEADSPARK_SAMPLE_SURVEYS[0].id);
+                  }}
                 >
                   <div className="flex items-center gap-3">
-                    <RadioGroupItem value="external" id="external" />
-                    <div>
-                      <Label htmlFor="external" className="font-medium text-gray-900 cursor-pointer">External Source</Label>
-                      <p className="text-xs text-gray-500">Connect to external API</p>
+                    <RadioGroupItem value="leadspark" id="survey-leadspark" />
+                    <div className="flex items-center gap-2">
+                      <Database className="h-4 w-4 text-primary" />
+                      <div>
+                        <Label htmlFor="survey-leadspark" className="font-medium text-gray-900 cursor-pointer">Leadspark</Label>
+                        <p className="text-xs text-gray-500">Use Leadspark survey templates</p>
+                      </div>
                     </div>
                   </div>
                 </Card>
                 
                 <Card 
-                  className={`flex-1 p-4 bg-white border rounded-lg cursor-pointer transition-all ${formData.questionSourceType === "manual" ? "border-primary ring-1 ring-primary" : "border-gray-200 hover:border-gray-300"}`}
+                  className={`p-4 bg-white border rounded-lg cursor-pointer transition-all ${formData.questionSourceType === "fidspark" ? "border-primary ring-1 ring-primary" : "border-gray-200 hover:border-gray-300"}`}
+                  onClick={() => {
+                    updateField("questionSourceType", "fidspark");
+                    updateField("selectedSurveyId", FIDSPARK_SAMPLE_SURVEYS[0].id);
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <RadioGroupItem value="fidspark" id="survey-fidspark" />
+                    <div className="flex items-center gap-2">
+                      <ExternalLink className="h-4 w-4 text-primary" />
+                      <div>
+                        <Label htmlFor="survey-fidspark" className="font-medium text-gray-900 cursor-pointer">Fidspark</Label>
+                        <p className="text-xs text-gray-500">Use Fidspark survey templates</p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+                
+                <Card 
+                  className={`p-4 bg-white border rounded-lg cursor-pointer transition-all ${formData.questionSourceType === "external" ? "border-primary ring-1 ring-primary" : "border-gray-200 hover:border-gray-300"}`}
+                  onClick={() => updateField("questionSourceType", "external")}
+                >
+                  <div className="flex items-center gap-3">
+                    <RadioGroupItem value="external" id="survey-external" />
+                    <div className="flex items-center gap-2">
+                      <Link2 className="h-4 w-4 text-primary" />
+                      <div>
+                        <Label htmlFor="survey-external" className="font-medium text-gray-900 cursor-pointer">External API</Label>
+                        <p className="text-xs text-gray-500">Connect to external API</p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+                
+                <Card 
+                  className={`p-4 bg-white border rounded-lg cursor-pointer transition-all ${formData.questionSourceType === "manual" ? "border-primary ring-1 ring-primary" : "border-gray-200 hover:border-gray-300"}`}
                   onClick={() => updateField("questionSourceType", "manual")}
                 >
                   <div className="flex items-center gap-3">
-                    <RadioGroupItem value="manual" id="manual" />
-                    <div>
-                      <Label htmlFor="manual" className="font-medium text-gray-900 cursor-pointer">Manual Configuration</Label>
-                      <p className="text-xs text-gray-500">Add and customize questions</p>
+                    <RadioGroupItem value="manual" id="survey-manual" />
+                    <div className="flex items-center gap-2">
+                      <Plus className="h-4 w-4 text-primary" />
+                      <div>
+                        <Label htmlFor="survey-manual" className="font-medium text-gray-900 cursor-pointer">Manual</Label>
+                        <p className="text-xs text-gray-500">Add and customize questions</p>
+                      </div>
                     </div>
                   </div>
                 </Card>
               </RadioGroup>
             </div>
 
+            {/* Leadspark Survey Selection */}
+            {formData.questionSourceType === "leadspark" && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <Label className="text-sm font-medium text-gray-900 mb-2 block">Select Leadspark Survey</Label>
+                <Select
+                  value={formData.selectedSurveyId}
+                  onValueChange={(v) => updateField("selectedSurveyId", v)}
+                >
+                  <SelectTrigger className="bg-white border-gray-200" data-testid="select-leadspark-survey">
+                    <SelectValue placeholder="Select a survey template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LEADSPARK_SAMPLE_SURVEYS.map((survey) => (
+                      <SelectItem key={survey.id} value={survey.id}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{survey.name}</span>
+                          <span className="text-xs text-gray-500">{survey.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-blue-600 mt-2">
+                  Survey questions will be pulled from the selected Leadspark template
+                </p>
+              </div>
+            )}
+
+            {/* Fidspark Survey Selection */}
+            {formData.questionSourceType === "fidspark" && (
+              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <Label className="text-sm font-medium text-gray-900 mb-2 block">Select Fidspark Survey</Label>
+                <Select
+                  value={formData.selectedSurveyId}
+                  onValueChange={(v) => updateField("selectedSurveyId", v)}
+                >
+                  <SelectTrigger className="bg-white border-gray-200" data-testid="select-fidspark-survey">
+                    <SelectValue placeholder="Select a survey template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FIDSPARK_SAMPLE_SURVEYS.map((survey) => (
+                      <SelectItem key={survey.id} value={survey.id}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{survey.name}</span>
+                          <span className="text-xs text-gray-500">{survey.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-purple-600 mt-2">
+                  Survey questions will be pulled from the selected Fidspark template
+                </p>
+              </div>
+            )}
+
+            {/* External API Configuration */}
             {formData.questionSourceType === "external" && (
               <div className="pt-4">
                 <Label htmlFor="question-source-url" className="text-sm font-medium text-gray-900">External Question Source URL *</Label>
@@ -949,6 +1364,7 @@ export default function CreateCampaign() {
               </div>
             )}
 
+            {/* Manual Questions Configuration */}
             {formData.questionSourceType === "manual" && (
               <div className="pt-4">
                 <div className="flex items-center justify-between mb-4">
@@ -1024,6 +1440,7 @@ export default function CreateCampaign() {
       case 5:
         return (
           <div className="space-y-6">
+            {/* Outcome Rules Section */}
             <div>
               <Label className="text-base font-semibold text-gray-900">Outcome Rules</Label>
               <p className="text-sm text-gray-500 mb-4">
@@ -1080,58 +1497,73 @@ export default function CreateCampaign() {
                   </div>
                 </Card>
 
+                {/* Non Responders Card */}
+                <Card className="p-6 bg-white border border-gray-200 rounded-lg">
+                  <h4 className="font-semibold text-gray-600 mb-1">Non Responders</h4>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Actions for customers who did not respond to the survey
+                  </p>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm text-gray-900">Create Fidspark Dispute</Label>
+                      <Switch
+                        checked={formData.outcomeRules.nonResponders.createFidsparkDispute}
+                        onCheckedChange={(v) =>
+                          updateField("outcomeRules", {
+                            ...formData.outcomeRules,
+                            nonResponders: { ...formData.outcomeRules.nonResponders, createFidsparkDispute: v },
+                          })
+                        }
+                        data-testid="switch-nonresponders-fidspark"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm text-gray-900">Create Leadspark Task</Label>
+                      <Switch
+                        checked={formData.outcomeRules.nonResponders.createLeadsparkTask}
+                        onCheckedChange={(v) =>
+                          updateField("outcomeRules", {
+                            ...formData.outcomeRules,
+                            nonResponders: { ...formData.outcomeRules.nonResponders, createLeadsparkTask: v },
+                          })
+                        }
+                        data-testid="switch-nonresponders-leadspark"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm text-gray-900">Create Webhook Task</Label>
+                      <Switch
+                        checked={formData.outcomeRules.nonResponders.createWebhookTask}
+                        onCheckedChange={(v) =>
+                          updateField("outcomeRules", {
+                            ...formData.outcomeRules,
+                            nonResponders: { ...formData.outcomeRules.nonResponders, createWebhookTask: v },
+                          })
+                        }
+                        data-testid="switch-nonresponders-webhook"
+                      />
+                    </div>
+                  </div>
+                </Card>
+
                 {/* Promoters Card */}
                 <Card className="p-6 bg-white border border-gray-200 rounded-lg">
                   <h4 className="font-semibold text-green-600 mb-1">Promoters (9-10)</h4>
                   <p className="text-sm text-gray-500 mb-4">
                     Actions for satisfied customers
                   </p>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm text-gray-900">Enable Review Channel Prompts</Label>
-                      <Switch
-                        checked={formData.outcomeRules.promoters.promptReviewChannels}
-                        onCheckedChange={(v) =>
-                          updateField("outcomeRules", {
-                            ...formData.outcomeRules,
-                            promoters: { promptReviewChannels: v },
-                          })
-                        }
-                        data-testid="switch-review-prompt"
-                      />
-                    </div>
-                    
-                    {formData.outcomeRules.promoters.promptReviewChannels && (
-                      <div className="pt-4 border-t border-gray-100">
-                        <Label className="text-sm font-medium text-gray-900 mb-3 block">Review Channels</Label>
-                        <p className="text-xs text-gray-500 mb-3">
-                          Drag to reorder priority for promoter review requests
-                        </p>
-                        <DraggableList
-                          items={formData.reviewChannels}
-                          onReorder={(items) =>
-                            updateField(
-                              "reviewChannels",
-                              items.map((item, index) => ({ ...item, priority: index + 1 }))
-                            )
-                          }
-                          renderItem={(channel) => (
-                            <div className="flex-1 flex items-center justify-between">
-                              <span className="text-sm text-gray-900">{channel.platform}</span>
-                              <Switch
-                                checked={channel.enabled}
-                                onCheckedChange={(v) => {
-                                  const updated = formData.reviewChannels.map((c) =>
-                                    c.id === channel.id ? { ...c, enabled: v } : c
-                                  );
-                                  updateField("reviewChannels", updated);
-                                }}
-                              />
-                            </div>
-                          )}
-                        />
-                      </div>
-                    )}
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm text-gray-900">Notify Fidspark</Label>
+                    <Switch
+                      checked={formData.outcomeRules.promoters.notifyFidspark}
+                      onCheckedChange={(v) =>
+                        updateField("outcomeRules", {
+                          ...formData.outcomeRules,
+                          promoters: { notifyFidspark: v },
+                        })
+                      }
+                      data-testid="switch-notify-fidspark"
+                    />
                   </div>
                 </Card>
 

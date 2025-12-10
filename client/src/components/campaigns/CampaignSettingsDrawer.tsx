@@ -578,49 +578,17 @@ export default function CampaignSettingsDrawer({
                   </div>
                   <div>
                     <h4 className="font-medium text-sm mb-3">Promoters (9-10)</h4>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-sm">Prompt Review Channels</Label>
-                        <Switch
-                          checked={formData.outcomeRules.promoters.promptReviewChannels}
-                          onCheckedChange={(v) =>
-                            updateField("outcomeRules", {
-                              ...formData.outcomeRules,
-                              promoters: { promptReviewChannels: v },
-                            })
-                          }
-                        />
-                      </div>
-
-                      {formData.outcomeRules.promoters.promptReviewChannels && (
-                        <div className="pt-4 border-t border-border">
-                          <Label className="text-sm font-medium mb-3 block">Review Channels</Label>
-                          <p className="text-xs text-muted-foreground mb-3">Drag to reorder priority</p>
-                          <DraggableList
-                            items={formData.reviewChannels}
-                            onReorder={(items) =>
-                              updateField(
-                                "reviewChannels",
-                                items.map((item, index) => ({ ...item, priority: index + 1 }))
-                              )
-                            }
-                            renderItem={(channel) => (
-                              <div className="flex-1 flex items-center justify-between">
-                                <span className="text-sm">{channel.platform}</span>
-                                <Switch
-                                  checked={channel.enabled}
-                                  onCheckedChange={(v) => {
-                                    const updated = formData.reviewChannels.map((c) =>
-                                      c.id === channel.id ? { ...c, enabled: v } : c
-                                    );
-                                    updateField("reviewChannels", updated);
-                                  }}
-                                />
-                              </div>
-                            )}
-                          />
-                        </div>
-                      )}
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm">Notify Fidspark</Label>
+                      <Switch
+                        checked={formData.outcomeRules.promoters.notifyFidspark}
+                        onCheckedChange={(v) =>
+                          updateField("outcomeRules", {
+                            ...formData.outcomeRules,
+                            promoters: { notifyFidspark: v },
+                          })
+                        }
+                      />
                     </div>
 
                     <div className="pt-6 border-t border-border">

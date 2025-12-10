@@ -39,18 +39,15 @@ export const getCampaigns = (): Campaign[] => {
             ...item,
             date: new Date(item.date),
           })),
-          reviewPerformance: {
-            ...c.insights.reviewPerformance,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            engagementTrend: c.insights.reviewPerformance.engagementTrend.map((item: any) => ({
-              ...item,
-              date: new Date(item.date),
-            })),
-          },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           detractorTickets: c.insights.detractorTickets.map((ticket: any) => ({
             ...ticket,
             createdAt: new Date(ticket.createdAt),
+          })),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          detractorTasks: (c.insights.detractorTasks || []).map((task: any) => ({
+            ...task,
+            createdAt: new Date(task.createdAt),
           })),
         },
       }));

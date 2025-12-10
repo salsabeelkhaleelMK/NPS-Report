@@ -35,20 +35,18 @@ const baseOutcomeRules = {
     webhookSecret: "",
     webhookPayloadTemplate: "",
   },
+  nonResponders: {
+    createFidsparkDispute: false,
+    createLeadsparkTask: false,
+    createWebhookTask: false,
+  },
   promoters: {
-    promptReviewChannels: true,
+    notifyFidspark: true,
   },
   passives: {
     noAction: true,
   },
 };
-
-const baseReviewChannels = [
-  { id: "rc1", platform: "Google" as const, priority: 1, enabled: true },
-  { id: "rc2", platform: "Facebook" as const, priority: 2, enabled: true },
-  { id: "rc3", platform: "AutoScout24" as const, priority: 3, enabled: false },
-  { id: "rc4", platform: "mobile.de" as const, priority: 4, enabled: false },
-];
 
 const baseAISettings = {
   enabled: true,
@@ -87,15 +85,8 @@ export const emptyInsights = {
     avgCallDuration: 0,
     escalationReasons: [],
   },
-  reviewPerformance: {
-    totalReviewRequestsSent: 0,
-    clickRate: 0,
-    clicksByChannel: [],
-    clicksByPlatform: [],
-    engagementRate: 0,
-    engagementTrend: [],
-  },
   detractorTickets: [],
+  detractorTasks: [],
 };
 
 /**
@@ -136,17 +127,21 @@ export const createSeedCampaigns = (): Campaign[] => {
         sms: { body: "" },
         whatsapp: { template: "" },
       },
-      reviewChannels: baseReviewChannels,
       outcomeRules: {
         detractors: {
           createFidsparkDispute: false,
-          createLeadsparkTask: false,
+          createLeadsparkTask: true, // Leadspark tasks for this campaign
           createWebhookTask: false,
           webhookUrl: "",
           webhookSecret: "",
           webhookPayloadTemplate: "",
         },
-        promoters: { promptReviewChannels: false },
+        nonResponders: {
+          createFidsparkDispute: false,
+          createLeadsparkTask: true,
+          createWebhookTask: false,
+        },
+        promoters: { notifyFidspark: false },
         passives: { noAction: true },
       },
       aiAgentSettings: {
@@ -187,15 +182,12 @@ export const createSeedCampaigns = (): Campaign[] => {
             { reason: "Escalation to sales team", count: 9 },
           ],
         },
-        reviewPerformance: {
-          totalReviewRequestsSent: 0,
-          clickRate: 0,
-          clicksByChannel: [],
-          clicksByPlatform: [],
-          engagementRate: 0,
-          engagementTrend: [],
-        },
         detractorTickets: [],
+        detractorTasks: [
+          { id: "task1", customerName: "John Peters", taskDescription: "Follow up on negative AI call feedback", status: "Open", assignedTo: "Sales Team", priority: "High", createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000) },
+          { id: "task2", customerName: "Sarah Miller", taskDescription: "Re-engage customer after failed contact", status: "In Progress", assignedTo: "Customer Success", priority: "Medium", createdAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000) },
+          { id: "task3", customerName: "Robert Brown", taskDescription: "Schedule callback for dissatisfied customer", status: "Resolved", assignedTo: "Sales Team", priority: "High", createdAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000) },
+        ],
       },
       createdAt: thirtyDaysAgo,
       updatedAt: now,
@@ -218,7 +210,6 @@ export const createSeedCampaigns = (): Campaign[] => {
       surveyQuestions: DEFAULT_QUESTIONS["New Vehicle Purchase"],
       followUpSteps: baseFollowUpSteps,
       messageTemplates: baseMessageTemplates,
-      reviewChannels: baseReviewChannels,
       outcomeRules: baseOutcomeRules,
       aiAgentSettings: baseAISettings,
       insights: {
@@ -247,32 +238,12 @@ export const createSeedCampaigns = (): Campaign[] => {
             { reason: "Verbal complaint", count: 8 },
           ],
         },
-        reviewPerformance: {
-          totalReviewRequestsSent: 142,
-          clickRate: 28.5,
-          clicksByChannel: [
-            { channel: "Email", clicks: 52 },
-            { channel: "SMS", clicks: 31 },
-            { channel: "WhatsApp", clicks: 18 },
-          ],
-          clicksByPlatform: [
-            { platform: "Google", clicks: 64 },
-            { platform: "Facebook", clicks: 25 },
-            { platform: "AutoScout24", clicks: 12 },
-          ],
-          engagementRate: 42.3,
-          engagementTrend: [
-            { date: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000), rate: 38 },
-            { date: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000), rate: 41 },
-            { date: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), rate: 44 },
-            { date: now, rate: 42 },
-          ],
-        },
         detractorTickets: [
           { id: "dt1", customerName: "Michael Schmidt", issue: "Long wait times at service desk", status: "In Progress", actionTaken: "Manager follow-up scheduled", createdAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000) },
           { id: "dt2", customerName: "Emma Weber", issue: "Vehicle delivery delayed", status: "Resolved", actionTaken: "Compensation offered and accepted", createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) },
           { id: "dt3", customerName: "Thomas Müller", issue: "Unsatisfied with financing terms", status: "Open", actionTaken: "Pending review", createdAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000) },
         ],
+        detractorTasks: [],
       },
       createdAt: sixtyDaysAgo,
       updatedAt: now,
@@ -309,8 +280,28 @@ export const createSeedCampaigns = (): Campaign[] => {
           template: "Hallo {{customerName}}, Ihr Feedback ist uns wichtig: {{surveyLink}}",
         },
       },
-      reviewChannels: baseReviewChannels,
-      outcomeRules: baseOutcomeRules,
+      // Webhook only - widget should be hidden
+      outcomeRules: {
+        detractors: {
+          createFidsparkDispute: false,
+          createLeadsparkTask: false,
+          createWebhookTask: true, // External webhook only
+          webhookUrl: "https://api.external-system.de/feedback",
+          webhookSecret: "sk_live_xxx",
+          webhookPayloadTemplate: '{"customer": "{{customerName}}", "score": "{{npsScore}}"}',
+        },
+        nonResponders: {
+          createFidsparkDispute: false,
+          createLeadsparkTask: false,
+          createWebhookTask: true,
+        },
+        promoters: {
+          notifyFidspark: true,
+        },
+        passives: {
+          noAction: true,
+        },
+      },
       aiAgentSettings: { ...baseAISettings, enabled: false },
       insights: {
         npsScore: 68,
@@ -334,28 +325,8 @@ export const createSeedCampaigns = (): Campaign[] => {
           avgCallDuration: 0,
           escalationReasons: [],
         },
-        reviewPerformance: {
-          totalReviewRequestsSent: 214,
-          clickRate: 31.2,
-          clicksByChannel: [
-            { channel: "Email", clicks: 89 },
-            { channel: "SMS", clicks: 42 },
-          ],
-          clicksByPlatform: [
-            { platform: "Google", clicks: 98 },
-            { platform: "Facebook", clicks: 33 },
-          ],
-          engagementRate: 38.5,
-          engagementTrend: [
-            { date: new Date(now.getTime() - 42 * 24 * 60 * 60 * 1000), rate: 35 },
-            { date: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000), rate: 37 },
-            { date: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000), rate: 40 },
-            { date: yesterday, rate: 38 },
-          ],
-        },
-        detractorTickets: [
-          { id: "dt4", customerName: "Hans Fischer", issue: "Repair not completed correctly", status: "Resolved", actionTaken: "Free re-service provided", createdAt: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000) },
-        ],
+        detractorTickets: [],
+        detractorTasks: [],
       },
       createdAt: sixtyDaysAgo,
       updatedAt: yesterday,
@@ -389,7 +360,6 @@ export const createSeedCampaigns = (): Campaign[] => {
           template: "مرحباً {{customerName}}، رأيك مهم لنا: {{surveyLink}}",
         },
       },
-      reviewChannels: baseReviewChannels,
       outcomeRules: baseOutcomeRules,
       aiAgentSettings: { ...baseAISettings, voiceType: "Male 1" },
       insights: { ...emptyInsights },
@@ -398,3 +368,4 @@ export const createSeedCampaigns = (): Campaign[] => {
     },
   ];
 };
+

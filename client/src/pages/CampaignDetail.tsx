@@ -3,7 +3,7 @@ import { useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ArrowLeft, Settings, Phone, Star, AlertTriangle, BarChart3, Users, TrendingUp, List } from "lucide-react";
+import { ArrowLeft, Settings, Phone, AlertTriangle, BarChart3, Users, TrendingUp, List } from "lucide-react";
 import { getCampaign } from "@/lib/campaignStore";
 import { Campaign } from "@/lib/types";
 import StatusBadge from "@/components/campaigns/StatusBadge";
@@ -245,72 +245,21 @@ export default function CampaignDetail() {
             </Card>
           </div>
 
-            {/* Review Performance */}
-          <InsightsCard
-            title="Review Performance"
-              icon={<Star className="h-5 w-5" />}
-            collapsible
-            defaultExpanded={false}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                  <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider">Review Requests Sent</p>
-                  <p className="text-3xl font-bold text-gray-900">{insights.reviewPerformance.totalReviewRequestsSent}</p>
-              </div>
-              <div>
-                  <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider">Click Rate</p>
-                  <p className="text-3xl font-bold text-gray-900">{insights.reviewPerformance.clickRate}%</p>
-              </div>
-              <div>
-                  <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider">Engagement Rate</p>
-                  <p className="text-3xl font-bold text-gray-900">{insights.reviewPerformance.engagementRate}%</p>
-              </div>
-            </div>
-            
-            {insights.reviewPerformance.clicksByChannel.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-4">Clicks by Channel</h4>
-                  <div className="space-y-4">
-                  {insights.reviewPerformance.clicksByChannel.map((item) => (
-                    <DistributionBar
-                      key={item.channel}
-                      label={item.channel}
-                      value={Math.round((item.clicks / insights.reviewPerformance.totalReviewRequestsSent) * 100)}
-                        color="#3B82F6"
-                      count={item.clicks}
-                    />
-                  ))}
-                </div>
-              </div>
+            {/* Detractor Cases/Tasks - Conditionally shown based on outcome rules */}
+            {(campaign.outcomeRules.detractors.createFidsparkDispute || campaign.outcomeRules.detractors.createLeadsparkTask) && (
+              <InsightsCard
+                title={campaign.outcomeRules.detractors.createLeadsparkTask ? "Detractor Tasks" : "Detractor Disputes"}
+                icon={<AlertTriangle className="h-5 w-5" />}
+                collapsible
+                defaultExpanded={false}
+              >
+                <DetractorCasesTable 
+                  tickets={insights.detractorTickets} 
+                  tasks={insights.detractorTasks}
+                  showTasks={campaign.outcomeRules.detractors.createLeadsparkTask}
+                />
+              </InsightsCard>
             )}
-            
-            {insights.reviewPerformance.clicksByPlatform.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-4">Clicks by Platform</h4>
-                  <div className="space-y-4">
-                  {insights.reviewPerformance.clicksByPlatform.map((item) => (
-                    <DistributionBar
-                      key={item.platform}
-                      label={item.platform}
-                      value={Math.round((item.clicks / insights.reviewPerformance.totalReviewRequestsSent) * 100)}
-                        color="#4CAF50"
-                      count={item.clicks}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-          </InsightsCard>
-
-            {/* Detractor Cases */}
-          <InsightsCard
-            title="Detractor Cases"
-              icon={<AlertTriangle className="h-5 w-5" />}
-            collapsible
-            defaultExpanded={false}
-          >
-            <DetractorCasesTable tickets={insights.detractorTickets} />
-          </InsightsCard>
           </TabsContent>
 
           <TabsContent value="log" className="mt-0">

@@ -329,3 +329,4 @@ project-root/
 - [ ] `dist/` committed (not ignored)
 - [ ] Components have data-testid attributes
 - [ ] Feature components grouped by domain
+

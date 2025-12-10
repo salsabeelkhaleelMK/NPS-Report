@@ -4,7 +4,6 @@ export type CampaignStatus = "Active" | "Paused" | "Draft" | "Completed";
 export type TriggerType = "Immediate" | "Delayed";
 export type QuestionType = "Yes/No" | "Grade" | "Text" | "Rating";
 export type ActionType = "Send Email" | "Send SMS" | "Send AI Call" | "Create dispute on Fidspark" | "Create NPS Task on Leadspark" | "Create follow-up task via Webhook";
-export type ReviewPlatform = "Google" | "Facebook" | "AutoScout24" | "mobile.de";
 export type VoiceType = "Male 1" | "Male 2" | "Female 1" | "Female 2" | "Neutral";
 export type TicketStatus = "Open" | "In Progress" | "Resolved";
 export type QuestionSourceType = "external" | "manual";
@@ -47,19 +46,17 @@ export interface OutcomeRules {
     webhookSecret: string;
     webhookPayloadTemplate: string;
   };
+  nonResponders: {
+    createFidsparkDispute: boolean;
+    createLeadsparkTask: boolean;
+    createWebhookTask: boolean;
+  };
   promoters: {
-    promptReviewChannels: boolean;
+    notifyFidspark: boolean;
   };
   passives: {
     noAction: boolean;
   };
-}
-
-export interface ReviewChannel {
-  id: string;
-  platform: ReviewPlatform;
-  priority: number;
-  enabled: boolean;
 }
 
 export interface AIAgentSettings {
@@ -85,6 +82,16 @@ export interface DetractorTicket {
   createdAt: Date;
 }
 
+export interface DetractorTask {
+  id: string;
+  customerName: string;
+  taskDescription: string;
+  status: TicketStatus;
+  assignedTo: string;
+  priority: "High" | "Medium" | "Low";
+  createdAt: Date;
+}
+
 export interface CampaignInsights {
   npsScore: number;
   responseCount: number;
@@ -105,15 +112,8 @@ export interface CampaignInsights {
     avgCallDuration: number;
     escalationReasons: Array<{ reason: string; count: number }>;
   };
-  reviewPerformance: {
-    totalReviewRequestsSent: number;
-    clickRate: number;
-    clicksByChannel: Array<{ channel: string; clicks: number }>;
-    clicksByPlatform: Array<{ platform: string; clicks: number }>;
-    engagementRate: number;
-    engagementTrend: Array<{ date: Date; rate: number }>;
-  };
   detractorTickets: DetractorTicket[];
+  detractorTasks: DetractorTask[];
 }
 
 export interface Campaign {
@@ -132,7 +132,6 @@ export interface Campaign {
   surveyQuestions: SurveyQuestion[];
   followUpSteps: FollowUpStep[];
   messageTemplates: MessageTemplate;
-  reviewChannels: ReviewChannel[];
   outcomeRules: OutcomeRules;
   aiAgentSettings: AIAgentSettings;
   insights: CampaignInsights;

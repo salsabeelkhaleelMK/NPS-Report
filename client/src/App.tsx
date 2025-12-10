@@ -68,7 +68,7 @@ function Sidebar() {
       <div className="mt-auto">
         <Avatar className="h-10 w-10 cursor-pointer">
           <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground text-sm">
-            JD
+            SK
           </AvatarFallback>
         </Avatar>
       </div>
@@ -101,10 +101,10 @@ function TopBar() {
         <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
           <Avatar className="h-8 w-8">
             <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-              JD
+              SK
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium text-gray-900">John Doe</span>
+          <span className="text-sm font-medium text-gray-900">Salsabeel Khaleel</span>
           <ChevronDown className="h-4 w-4 text-gray-500" />
         </button>
       </div>
