@@ -446,199 +446,199 @@ export default function CreateCampaign() {
                           <div className="pt-4 border-t border-gray-100">
                             <Label className="text-sm font-semibold text-gray-900 mb-2 block">Email Template</Label>
                             <p className="text-xs text-gray-500 mb-4">
-                              Configure the email template for "Send Email" steps
-                            </p>
-                            <div className="space-y-4">
-                              <div>
+                  Configure the email template for "Send Email" steps
+                </p>
+                <div className="space-y-4">
+                  <div>
                                 <Label className="text-sm font-medium text-gray-900">Subject</Label>
-                                <Input
+                    <Input
                                   value={(getStepConfiguration(step.id, "emailSubject") as string) || formData.messageTemplates.email.subject}
                                   onChange={(e) => updateStepConfiguration(step.id, { emailSubject: e.target.value })}
-                                  placeholder="We'd love your feedback!"
+                      placeholder="We'd love your feedback!"
                                   className="mt-2 bg-white border-gray-200"
-                                  data-testid="input-email-subject"
-                                />
-                              </div>
-                              <div>
+                      data-testid="input-email-subject"
+                    />
+                  </div>
+                  <div>
                                 <Label className="text-sm font-medium text-gray-900">Body</Label>
-                                <Textarea
+                    <Textarea
                                   value={(getStepConfiguration(step.id, "emailBody") as string) || formData.messageTemplates.email.body}
                                   onChange={(e) => updateStepConfiguration(step.id, { emailBody: e.target.value })}
-                                  placeholder="Use {{customerName}} and {{surveyLink}} as placeholders"
+                      placeholder="Use {{customerName}} and {{surveyLink}} as placeholders"
                                   className="mt-2 bg-white border-gray-200"
-                                  rows={4}
-                                  data-testid="input-email-body"
-                                />
-                              </div>
-                            </div>
-                          </div>
+                      rows={4}
+                      data-testid="input-email-body"
+                    />
+                  </div>
+                </div>
+              </div>
                         );
                       case "Send SMS":
                         return (
                           <div className="pt-4 border-t border-gray-100">
                             <Label className="text-sm font-semibold text-gray-900 mb-2 block">SMS Template</Label>
                             <p className="text-xs text-gray-500 mb-4">
-                              Configure the SMS template for "Send SMS" steps
-                            </p>
-                            <div>
+                  Configure the SMS template for "Send SMS" steps
+                </p>
+                <div>
                               <Label className="text-sm font-medium text-gray-900">Message</Label>
-                              <Textarea
+                  <Textarea
                                 value={(getStepConfiguration(step.id, "smsBody") as string) || formData.messageTemplates.sms.body}
                                 onChange={(e) => updateStepConfiguration(step.id, { smsBody: e.target.value })}
-                                placeholder="Hi {{customerName}}! Rate your experience: {{surveyLink}}"
+                    placeholder="Hi {{customerName}}! Rate your experience: {{surveyLink}}"
                                 className="mt-2 bg-white border-gray-200"
-                                rows={3}
-                                data-testid="input-sms-body"
-                              />
-                            </div>
-                          </div>
+                    rows={3}
+                    data-testid="input-sms-body"
+                  />
+                </div>
+              </div>
                         );
                       case "Send AI Call":
                         return (
                           <div className="pt-4 border-t border-gray-100">
                             <Label className="text-sm font-semibold text-gray-900 mb-2 block">AI Agent Settings</Label>
                             <p className="text-xs text-gray-500 mb-4">
-                              Configure the AI agent for "Send AI Call" steps
-                            </p>
-                            <div className="space-y-6">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
+                  Configure the AI agent for "Send AI Call" steps
+                </p>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
                                   <Label className="text-sm font-medium text-gray-900">Start After (hours)</Label>
-                                  <Input
-                                    type="number"
+                      <Input
+                        type="number"
                                     value={(getStepConfiguration(step.id, "startAfterHours") as number) ?? formData.aiAgentSettings.startAfterHours}
                                     onChange={(e) => updateStepConfiguration(step.id, { startAfterHours: parseInt(e.target.value) || 0 })}
                                     className="mt-2 bg-white border-gray-200"
-                                    data-testid="input-start-after"
-                                  />
+                        data-testid="input-start-after"
+                      />
                                   <p className="text-xs text-gray-500 mt-1">
-                                    Hours to wait before making the first call
-                                  </p>
-                                </div>
-                                <div>
+                        Hours to wait before making the first call
+                      </p>
+                    </div>
+                    <div>
                                   <Label className="text-sm font-medium text-gray-900">Retry Interval (hours)</Label>
-                                  <Input
-                                    type="number"
+                      <Input
+                        type="number"
                                     value={(getStepConfiguration(step.id, "retryIntervalHours") as number) ?? formData.aiAgentSettings.retryIntervalHours}
                                     onChange={(e) => updateStepConfiguration(step.id, { retryIntervalHours: parseInt(e.target.value) || 0 })}
                                     className="mt-2 bg-white border-gray-200"
-                                    data-testid="input-retry-interval"
-                                  />
+                        data-testid="input-retry-interval"
+                      />
                                   <p className="text-xs text-gray-500 mt-1">
-                                    Hours between retry attempts
-                                  </p>
-                                </div>
-                              </div>
+                        Hours between retry attempts
+                      </p>
+                    </div>
+                  </div>
 
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
                                   <Label className="text-sm font-medium text-gray-900">Max Retries</Label>
-                                  <Input
-                                    type="number"
+                      <Input
+                        type="number"
                                     value={(getStepConfiguration(step.id, "maxRetries") as number) ?? formData.aiAgentSettings.maxRetries}
                                     onChange={(e) => updateStepConfiguration(step.id, { maxRetries: parseInt(e.target.value) || 0 })}
                                     className="mt-2 bg-white border-gray-200"
-                                    data-testid="input-max-retries"
-                                  />
-                                </div>
-                                <div>
+                        data-testid="input-max-retries"
+                      />
+                    </div>
+                    <div>
                                   <Label className="text-sm font-medium text-gray-900">Voice Type</Label>
-                                  <Select
+                      <Select
                                     value={(getStepConfiguration(step.id, "voiceType") as string) || formData.aiAgentSettings.voiceType}
                                     onValueChange={(v) => updateStepConfiguration(step.id, { voiceType: v })}
-                                  >
+                      >
                                     <SelectTrigger className="mt-2 bg-white border-gray-200" data-testid="select-voice-type">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="Male 1">Male 1</SelectItem>
-                                      <SelectItem value="Male 2">Male 2</SelectItem>
-                                      <SelectItem value="Female 1">Female 1</SelectItem>
-                                      <SelectItem value="Female 2">Female 2</SelectItem>
-                                      <SelectItem value="Neutral">Neutral</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Male 1">Male 1</SelectItem>
+                          <SelectItem value="Male 2">Male 2</SelectItem>
+                          <SelectItem value="Female 1">Female 1</SelectItem>
+                          <SelectItem value="Female 2">Female 2</SelectItem>
+                          <SelectItem value="Neutral">Neutral</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
                                   <Label className="text-sm font-medium text-gray-900">Call Window From</Label>
-                                  <Input
-                                    type="time"
+                      <Input
+                        type="time"
                                     value={(getStepConfiguration(step.id, "callWindowFrom") as string) || formData.aiAgentSettings.callWindowFrom}
                                     onChange={(e) => updateStepConfiguration(step.id, { callWindowFrom: e.target.value })}
                                     className="mt-2 bg-white border-gray-200"
-                                    data-testid="input-call-from"
-                                  />
-                                </div>
-                                <div>
+                        data-testid="input-call-from"
+                      />
+                    </div>
+                    <div>
                                   <Label className="text-sm font-medium text-gray-900">Call Window To</Label>
-                                  <Input
-                                    type="time"
+                      <Input
+                        type="time"
                                     value={(getStepConfiguration(step.id, "callWindowTo") as string) || formData.aiAgentSettings.callWindowTo}
                                     onChange={(e) => updateStepConfiguration(step.id, { callWindowTo: e.target.value })}
                                     className="mt-2 bg-white border-gray-200"
-                                    data-testid="input-call-to"
-                                  />
-                                </div>
-                              </div>
+                        data-testid="input-call-to"
+                      />
+                    </div>
+                  </div>
 
-                              <div>
+                  <div>
                                 <Label className="text-sm font-medium text-gray-900">Persona Script</Label>
-                                <Textarea
+                    <Textarea
                                   value={(getStepConfiguration(step.id, "personaScript") as string) || formData.aiAgentSettings.personaScript}
                                   onChange={(e) => updateStepConfiguration(step.id, { personaScript: e.target.value })}
                                   className="mt-2 bg-white border-gray-200"
-                                  rows={4}
-                                  placeholder="Hello, this is Sarah from AutoHaus. I'm calling to follow up on your recent experience with us..."
-                                  data-testid="input-persona-script"
-                                />
+                      rows={4}
+                      placeholder="Hello, this is Sarah from AutoHaus. I'm calling to follow up on your recent experience with us..."
+                      data-testid="input-persona-script"
+                    />
                                 <p className="text-xs text-gray-500 mt-1">
-                                  The script the AI agent will use when making calls
-                                </p>
-                              </div>
+                      The script the AI agent will use when making calls
+                    </p>
+                  </div>
 
                               <div className="pt-4 border-t border-gray-100">
                                 <Label className="text-sm font-semibold text-gray-900 mb-3 block">Human Escalation Triggers</Label>
-                                <div className="space-y-3">
-                                  <div className="flex items-center justify-between">
-                                    <div>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
                                       <Label className="text-sm text-gray-900">On Call Failure</Label>
                                       <p className="text-xs text-gray-500">Escalate when AI agent cannot complete the call</p>
-                                    </div>
-                                    <Switch
+                        </div>
+                        <Switch
                                       checked={(getStepConfiguration(step.id, "triggerHumanFollowUpOnFailure") as boolean) ?? formData.aiAgentSettings.triggerHumanFollowUpOnFailure}
                                       onCheckedChange={(v) => updateStepConfiguration(step.id, { triggerHumanFollowUpOnFailure: v })}
-                                      data-testid="switch-escalate-failure"
-                                    />
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                    <div>
+                          data-testid="switch-escalate-failure"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
                                       <Label className="text-sm text-gray-900">On Dissatisfaction Detected</Label>
                                       <p className="text-xs text-gray-500">Escalate when customer expresses dissatisfaction</p>
-                                    </div>
-                                    <Switch
+                        </div>
+                        <Switch
                                       checked={(getStepConfiguration(step.id, "triggerHumanFollowUpOnDissatisfaction") as boolean) ?? formData.aiAgentSettings.triggerHumanFollowUpOnDissatisfaction}
                                       onCheckedChange={(v) => updateStepConfiguration(step.id, { triggerHumanFollowUpOnDissatisfaction: v })}
-                                      data-testid="switch-escalate-dissatisfaction"
-                                    />
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                    <div>
+                          data-testid="switch-escalate-dissatisfaction"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
                                       <Label className="text-sm text-gray-900">On Verbal Complaint</Label>
                                       <p className="text-xs text-gray-500">Escalate when customer makes a verbal complaint</p>
-                                    </div>
-                                    <Switch
+                        </div>
+                        <Switch
                                       checked={(getStepConfiguration(step.id, "triggerHumanFollowUpOnVerbalComplaint") as boolean) ?? formData.aiAgentSettings.triggerHumanFollowUpOnVerbalComplaint}
                                       onCheckedChange={(v) => updateStepConfiguration(step.id, { triggerHumanFollowUpOnVerbalComplaint: v })}
-                                      data-testid="switch-escalate-complaint"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                          data-testid="switch-escalate-complaint"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
                         );
                       default:
                         return null;

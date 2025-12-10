@@ -117,200 +117,200 @@ export default function CampaignDetail() {
           </div>
 
           <TabsContent value="dashboard" className="space-y-6 mt-0">
-            {/* LEAD SOURCE INFORMATION */}
+        {/* LEAD SOURCE INFORMATION */}
             <Card className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Leads Source
-              </h3>
+              <Users className="h-5 w-5 text-primary" />
+              Leads Source
+            </h3>
               <p className="text-sm text-gray-500">{campaign.targetAudience || "No description provided"}</p>
-            </Card>
+          </Card>
 
-            {/* AI CALL RELATED INSIGHTS */}
+        {/* AI CALL RELATED INSIGHTS */}
             {campaign.aiAgentSettings.enabled && (
               <AIAgentLiveStatus campaignId={campaign.id} />
             )}
 
-            <InsightsCard
+          <InsightsCard
               title="History"
               icon={<Phone className="h-5 w-5" />}
-              collapsible
-              defaultExpanded={true}
-            >
-              {!campaign.aiAgentSettings.enabled ? (
+            collapsible
+            defaultExpanded={true}
+          >
+            {!campaign.aiAgentSettings.enabled ? (
                 <p className="text-sm text-gray-500">AI Agent is not enabled for this campaign.</p>
-              ) : (
-                <>
+            ) : (
+              <>
                   {/* Metrics grid with big numbers */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-                    <div>
+                  <div>
                       <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider">Total Calls</p>
                       <p className="text-3xl font-bold text-gray-900">{insights.aiAgentMetrics.totalCalls}</p>
-                    </div>
-                    <div>
+                  </div>
+                  <div>
                       <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider">Successful</p>
                       <p className="text-3xl font-bold text-green-600">{insights.aiAgentMetrics.successfulCalls}</p>
-                    </div>
-                    <div>
+                  </div>
+                  <div>
                       <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider">Unreachable</p>
                       <p className="text-3xl font-bold text-amber-600">{insights.aiAgentMetrics.unreachable}</p>
-                    </div>
-                    <div>
+                  </div>
+                  <div>
                       <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider">Avg Duration</p>
                       <p className="text-3xl font-bold text-gray-900">
-                        {Math.floor(insights.aiAgentMetrics.avgCallDuration / 60)}:{(insights.aiAgentMetrics.avgCallDuration % 60).toString().padStart(2, '0')}
-                      </p>
-                    </div>
+                      {Math.floor(insights.aiAgentMetrics.avgCallDuration / 60)}:{(insights.aiAgentMetrics.avgCallDuration % 60).toString().padStart(2, '0')}
+                    </p>
                   </div>
-                  
-                  {insights.aiAgentMetrics.escalationReasons.length > 0 && (
+                </div>
+                
+                {insights.aiAgentMetrics.escalationReasons.length > 0 && (
                     <div className="pt-6 border-t border-gray-100">
                       <h4 className="text-sm font-semibold text-gray-900 mb-4">Escalation Reasons</h4>
                       <div className="space-y-3">
-                        {insights.aiAgentMetrics.escalationReasons.map((reason) => (
-                          <div key={reason.reason} className="flex justify-between text-sm">
+                      {insights.aiAgentMetrics.escalationReasons.map((reason) => (
+                        <div key={reason.reason} className="flex justify-between text-sm">
                             <span className="text-gray-600">{reason.reason}</span>
                             <span className="font-semibold text-gray-900">{reason.count}</span>
-                          </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
-                </>
-              )}
-            </InsightsCard>
+                  </div>
+                )}
+              </>
+            )}
+          </InsightsCard>
 
             {/* NON-AI RELATED INSIGHTS - Grid layout */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* NPS Overview Card */}
               <Card className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  NPS Overview
-                </h3>
-                <NPSDonutChart
-                  promotersPercent={insights.promotersPercent}
-                  passivesPercent={insights.passivesPercent}
-                  detractorsPercent={insights.detractorsPercent}
-                  npsScore={insights.npsScore}
-                />
+                <TrendingUp className="h-5 w-5 text-primary" />
+                NPS Overview
+              </h3>
+              <NPSDonutChart
+                promotersPercent={insights.promotersPercent}
+                passivesPercent={insights.passivesPercent}
+                detractorsPercent={insights.detractorsPercent}
+                npsScore={insights.npsScore}
+              />
                 <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-100">
-                  <div className="text-center">
+                <div className="text-center">
                     <p className="text-2xl font-bold text-gray-900" data-testid="text-response-count">
-                      {insights.responseCount}
-                    </p>
+                    {insights.responseCount}
+                  </p>
                     <p className="text-xs text-gray-400 uppercase tracking-wider">Responses</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-900" data-testid="text-response-rate">
-                      {insights.responseRate}%
-                    </p>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Response Rate</p>
-                  </div>
                 </div>
-              </Card>
+                <div className="text-center">
+                    <p className="text-2xl font-bold text-gray-900" data-testid="text-response-rate">
+                    {insights.responseRate}%
+                  </p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">Response Rate</p>
+                </div>
+              </div>
+            </Card>
 
               {/* Response Sources Card */}
               <Card className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-primary" />
-                  Response Sources
-                </h3>
-                <div className="space-y-4">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                Response Sources
+              </h3>
+              <div className="space-y-4">
                   {/* Progress bars with design system colors */}
-                  <DistributionBar 
-                    label="Email" 
-                    value={Math.round((insights.responseSources.email / insights.responseCount) * 100) || 0} 
+                <DistributionBar 
+                  label="Email" 
+                  value={Math.round((insights.responseSources.email / insights.responseCount) * 100) || 0} 
                     color="#3B82F6"
-                    count={insights.responseSources.email}
-                  />
-                  <DistributionBar 
-                    label="SMS" 
-                    value={Math.round((insights.responseSources.sms / insights.responseCount) * 100) || 0} 
+                  count={insights.responseSources.email}
+                />
+                <DistributionBar 
+                  label="SMS" 
+                  value={Math.round((insights.responseSources.sms / insights.responseCount) * 100) || 0} 
                     color="#A855F7"
-                    count={insights.responseSources.sms}
-                  />
-                  <DistributionBar 
-                    label="AI Call" 
-                    value={Math.round((insights.responseSources.aiCall / insights.responseCount) * 100) || 0} 
+                  count={insights.responseSources.sms}
+                />
+                <DistributionBar 
+                  label="AI Call" 
+                  value={Math.round((insights.responseSources.aiCall / insights.responseCount) * 100) || 0} 
                     color="#F97316"
-                    count={insights.responseSources.aiCall}
-                  />
-                </div>
-                
-                <div className="mt-6 pt-4 border-t border-gray-100">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-4">NPS Trend</h4>
-                  <NPSTrendChart data={insights.npsOverTime} />
-                </div>
-              </Card>
-            </div>
-
-            {/* Review Performance */}
-            <InsightsCard
-              title="Review Performance"
-              icon={<Star className="h-5 w-5" />}
-              collapsible
-              defaultExpanded={false}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider">Review Requests Sent</p>
-                  <p className="text-3xl font-bold text-gray-900">{insights.reviewPerformance.totalReviewRequestsSent}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider">Click Rate</p>
-                  <p className="text-3xl font-bold text-gray-900">{insights.reviewPerformance.clickRate}%</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider">Engagement Rate</p>
-                  <p className="text-3xl font-bold text-gray-900">{insights.reviewPerformance.engagementRate}%</p>
-                </div>
+                  count={insights.responseSources.aiCall}
+                />
               </div>
               
-              {insights.reviewPerformance.clicksByChannel.length > 0 && (
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-4">NPS Trend</h4>
+                <NPSTrendChart data={insights.npsOverTime} />
+              </div>
+            </Card>
+          </div>
+
+            {/* Review Performance */}
+          <InsightsCard
+            title="Review Performance"
+              icon={<Star className="h-5 w-5" />}
+            collapsible
+            defaultExpanded={false}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                  <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider">Review Requests Sent</p>
+                  <p className="text-3xl font-bold text-gray-900">{insights.reviewPerformance.totalReviewRequestsSent}</p>
+              </div>
+              <div>
+                  <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider">Click Rate</p>
+                  <p className="text-3xl font-bold text-gray-900">{insights.reviewPerformance.clickRate}%</p>
+              </div>
+              <div>
+                  <p className="text-sm text-gray-400 mb-1 uppercase tracking-wider">Engagement Rate</p>
+                  <p className="text-3xl font-bold text-gray-900">{insights.reviewPerformance.engagementRate}%</p>
+              </div>
+            </div>
+            
+            {insights.reviewPerformance.clicksByChannel.length > 0 && (
                 <div className="mt-6 pt-6 border-t border-gray-100">
                   <h4 className="text-sm font-semibold text-gray-900 mb-4">Clicks by Channel</h4>
                   <div className="space-y-4">
-                    {insights.reviewPerformance.clicksByChannel.map((item) => (
-                      <DistributionBar
-                        key={item.channel}
-                        label={item.channel}
-                        value={Math.round((item.clicks / insights.reviewPerformance.totalReviewRequestsSent) * 100)}
+                  {insights.reviewPerformance.clicksByChannel.map((item) => (
+                    <DistributionBar
+                      key={item.channel}
+                      label={item.channel}
+                      value={Math.round((item.clicks / insights.reviewPerformance.totalReviewRequestsSent) * 100)}
                         color="#3B82F6"
-                        count={item.clicks}
-                      />
-                    ))}
-                  </div>
+                      count={item.clicks}
+                    />
+                  ))}
                 </div>
-              )}
-              
-              {insights.reviewPerformance.clicksByPlatform.length > 0 && (
+              </div>
+            )}
+            
+            {insights.reviewPerformance.clicksByPlatform.length > 0 && (
                 <div className="mt-6 pt-6 border-t border-gray-100">
                   <h4 className="text-sm font-semibold text-gray-900 mb-4">Clicks by Platform</h4>
                   <div className="space-y-4">
-                    {insights.reviewPerformance.clicksByPlatform.map((item) => (
-                      <DistributionBar
-                        key={item.platform}
-                        label={item.platform}
-                        value={Math.round((item.clicks / insights.reviewPerformance.totalReviewRequestsSent) * 100)}
+                  {insights.reviewPerformance.clicksByPlatform.map((item) => (
+                    <DistributionBar
+                      key={item.platform}
+                      label={item.platform}
+                      value={Math.round((item.clicks / insights.reviewPerformance.totalReviewRequestsSent) * 100)}
                         color="#4CAF50"
-                        count={item.clicks}
-                      />
-                    ))}
-                  </div>
+                      count={item.clicks}
+                    />
+                  ))}
                 </div>
-              )}
-            </InsightsCard>
+              </div>
+            )}
+          </InsightsCard>
 
             {/* Detractor Cases */}
-            <InsightsCard
-              title="Detractor Cases"
+          <InsightsCard
+            title="Detractor Cases"
               icon={<AlertTriangle className="h-5 w-5" />}
-              collapsible
-              defaultExpanded={false}
-            >
-              <DetractorCasesTable tickets={insights.detractorTickets} />
-            </InsightsCard>
+            collapsible
+            defaultExpanded={false}
+          >
+            <DetractorCasesTable tickets={insights.detractorTickets} />
+          </InsightsCard>
           </TabsContent>
 
           <TabsContent value="log" className="mt-0">

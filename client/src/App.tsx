@@ -139,13 +139,13 @@ function PageLoader() {
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
-      <Switch>
-        <Route path="/">
-          <Redirect to="/campaigns" />
-        </Route>
-        <Route path="/campaigns" component={CampaignList} />
-        <Route path="/campaigns/new" component={CreateCampaign} />
-        <Route path="/campaigns/:id" component={CampaignDetail} />
+    <Switch>
+      <Route path="/">
+        <Redirect to="/campaigns" />
+      </Route>
+      <Route path="/campaigns" component={CampaignList} />
+      <Route path="/campaigns/new" component={CreateCampaign} />
+      <Route path="/campaigns/:id" component={CampaignDetail} />
         <Route path="/dashboard">
           <Redirect to="/campaigns" />
         </Route>
@@ -158,8 +158,8 @@ function Router() {
         <Route path="/settings">
           <Redirect to="/campaigns" />
         </Route>
-        <Route component={NotFound} />
-      </Switch>
+      <Route component={NotFound} />
+    </Switch>
     </Suspense>
   );
 }
@@ -170,7 +170,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <MainLayout>
-          <Router />
+        <Router />
         </MainLayout>
       </TooltipProvider>
     </QueryClientProvider>

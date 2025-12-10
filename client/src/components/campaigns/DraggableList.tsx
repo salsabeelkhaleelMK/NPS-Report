@@ -49,16 +49,16 @@ function SortableItem({ id, children }: DraggableItemProps) {
       data-testid={`draggable-item-${id}`}
     >
       <div className="flex items-start gap-2">
-        <button
-          type="button"
+      <button
+        type="button"
           className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 transition-colors mt-4"
-          {...attributes}
-          {...listeners}
-          data-testid={`drag-handle-${id}`}
-        >
+        {...attributes}
+        {...listeners}
+        data-testid={`drag-handle-${id}`}
+      >
           <GripVertical className="h-5 w-5" />
-        </button>
-        <div className="flex-1">{children}</div>
+      </button>
+      <div className="flex-1">{children}</div>
       </div>
     </div>
   );
